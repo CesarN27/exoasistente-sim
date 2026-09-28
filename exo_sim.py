@@ -41,26 +41,49 @@ def _xml(asiento=True):
         sx, sz = _pos_asiento()
         seat = f"""
     <geom name="asiento" type="box" pos="{sx} 0 {sz}" size="0.25 0.2 0.01"
-          rgba=".5 .4 .3 1" contype="2" conaffinity="2"/>"""
+          rgba=".55 .4 .28 1" contype="2" conaffinity="2"/>
+    <geom name="respaldo" type="box" pos="{sx - 0.24} 0 {sz + 0.25}" size="0.01 0.2 0.25" rgba=".55 .4 .28 1"/>
+    <geom type="box" pos="{sx + 0.22} 0.17 {sz / 2}" size="0.015 0.015 {sz / 2}" rgba=".35 .25 .18 1"/>
+    <geom type="box" pos="{sx - 0.22} 0.17 {sz / 2}" size="0.015 0.015 {sz / 2}" rgba=".35 .25 .18 1"/>"""
     return f"""
 <mujoco model="exoasistente_rodilla">
   <compiler angle="radian"/>
   <option timestep="0.001" integrator="implicitfast" gravity="0 0 -9.81"/>
   <default><geom contype="0" conaffinity="0"/></default>
+  <visual><global offwidth="960" offheight="720"/></visual>
+  <asset>
+    <texture name="piso" type="2d" builtin="checker" rgb1=".86 .87 .88" rgb2=".78 .79 .8" width="256" height="256"/>
+    <texture type="skybox" builtin="gradient" rgb1=".93 .94 .96" rgb2=".72 .76 .82" width="256" height="256"/>
+    <material name="piso" texture="piso" texrepeat="6 6"/>
+    <material name="piel" rgba=".87 .69 .56 1"/>
+    <material name="ropa" rgba=".25 .33 .45 1"/>
+    <material name="exo" rgba=".75 .78 .8 1" specular=".6" shininess=".8"/>
+    <material name="motor" rgba=".12 .45 .8 1"/>
+  </asset>
   <worldbody>
-    <geom type="plane" size="2 2 .1" rgba=".9 .9 .9 1"/>{seat}
+    <light pos="0.5 -2 3" dir="-0.2 1 -1.2" diffuse=".8 .8 .8"/>
+    <camera name="lateral" pos="-0.15 -2.6 0.9" xyaxes="1 0 0 0 0 1"/>
+    <geom type="plane" size="2 2 .1" material="piso"/>{seat}
+    <geom type="box" pos="0.06 0 0.035" size="0.13 0.05 0.035" rgba=".15 .15 .15 1"/>
     <body name="pierna" pos="0 0 {H_TOBILLO}">
       <joint name="tobillo" type="hinge" axis="0 1 0" range="-0.6 0.7" limited="true"/>
       <inertial pos="0 0 {cp}" mass="{M_PIERNA}" diaginertia="{Ip} {Ip} {Ip/10}"/>
-      <geom type="capsule" fromto="0 0 0 0 0 {L_PIERNA}" size="0.05"/>
+      <geom type="capsule" fromto="0 0 0 0 0 {L_PIERNA}" size="0.05" material="ropa"/>
+      <geom type="box" pos="0.0 -0.075 {L_PIERNA * 0.55}" size="0.012 0.008 {L_PIERNA * 0.42}" material="exo"/>
+      <geom type="box" pos="0.0 -0.06 {L_PIERNA * 0.3}" size="0.06 0.012 0.025" rgba=".1 .1 .1 1"/>
       <body name="muslo" pos="0 0 {L_PIERNA}">
         <joint name="rodilla" type="hinge" axis="0 -1 0" range="0 2.1" limited="true"/>
         <inertial pos="0 0 {cm}" mass="{M_MUSLO}" diaginertia="{Im} {Im} {Im/10}"/>
-        <geom type="capsule" fromto="0 0 0 0 0 {L_MUSLO}" size="0.07"/>
+        <geom type="capsule" fromto="0 0 0 0 0 {L_MUSLO}" size="0.07" material="ropa"/>
+        <geom type="cylinder" pos="0 -0.1 0" euler="1.5708 0 0" size="0.055 0.03" material="motor"/>
+        <geom type="box" pos="0.0 -0.09 {L_MUSLO * 0.45}" size="0.012 0.008 {L_MUSLO * 0.42}" material="exo"/>
+        <geom type="box" pos="0.0 -0.08 {L_MUSLO * 0.65}" size="0.08 0.012 0.03" rgba=".1 .1 .1 1"/>
         <body name="tronco" pos="0 0 {L_MUSLO}">
           <joint name="cadera" type="hinge" axis="0 1 0" range="-0.2 2.4" limited="true"/>
           <inertial pos="0 0 {COM_HAT}" mass="{M_HAT}" diaginertia="{Ih} {Ih} {Ih/4}"/>
-          <geom type="capsule" fromto="0 0 0 0 0 0.55" size="0.12"/>
+          <geom type="capsule" fromto="0 0 0 0 0 0.5" size="0.12" material="ropa"/>
+          <geom type="sphere" pos="0.02 0 0.68" size="0.1" material="piel"/>
+          <geom type="capsule" fromto="0 -0.16 0.45 0.05 -0.16 0.2" size="0.035" material="piel"/>
           <geom name="gluteo" type="sphere" pos="-0.03 0 -0.06" size="0.07"
                 contype="2" conaffinity="2"/>
           <site name="pelvis" pos="0 0 0"/>
@@ -230,6 +253,7 @@ def simular(cfg: Config):
     q_lock = np.inf
     corte_hw = False
     sid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_SITE, "pelvis")
+    gid_asiento = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_GEOM, "asiento")
     for i in range(n):
         t = ts[i]
         # la persona descuenta el par que espera del exo hasta darse cuenta de la falla
@@ -282,6 +306,8 @@ def simular(cfg: Config):
         # fuerza del asiento
         fz = 0.0
         for c in range(d.ncon):
+            if gid_asiento not in (d.contact[c].geom1, d.contact[c].geom2):
+                continue   # solo el asiento; el respaldo no cuenta
             f6 = np.zeros(6)
             mujoco.mj_contactForce(m, d, c, f6)
             fz += abs(f6[0])

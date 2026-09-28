@@ -10,6 +10,16 @@ python3 experimentos.py            # todos los experimentos (~2 min), figuras en
 python3 experimentos.py fallas     # uno solo: nominal | latencia | fallas | sentarse | runaway | transparencia
 ```
 
+### Ver al humano simulado
+
+```bash
+python3 ver.py                        # visor 3D interactivo (en macOS: mjpython ver.py)
+python3 ver.py --escenario falla      # nominal | sin-exo | falla | sentarse
+python3 ver.py --gif salida.gif       # graba un GIF sin abrir ventana
+```
+
+En el visor se arrastra con el ratón para girar la cámara y se usa la rueda para acercar. El disco azul en la rodilla es el motor del exo. En `animaciones/` hay GIFs ya grabados de los cuatro escenarios. En los casos en que la persona vuelve a caer a la silla, la animación se corta 0,4 s después del impacto, porque a partir de ahí el modelo deja de ser realista.
+
 Los parámetros están en `exo_sim.py`: antropometría (`MASA`, `ALTURA`), diseños de transmisión (`DISENOS`) y el escenario (`Config`).
 
 ## Qué modela
