@@ -1,0 +1,54 @@
+{
+ "A": {
+  "titulo": "Todo sale bien",
+  "resultado": "de pie",
+  "impacto_m_s": 0.0,
+  "t_impacto": null,
+  "fotos": [
+   0.0,
+   0.7,
+   1.3,
+   1.9,
+   2.7
+  ]
+ },
+ "B1": {
+  "titulo": "El exo se apaga a mitad de la subida",
+  "resultado": "vuelve a la silla",
+  "impacto_m_s": 1.64,
+  "t_impacto": 2.535,
+  "fotos": [
+   0.0,
+   1.0,
+   1.4,
+   2.0,
+   2.58
+  ]
+ },
+ "B2": {
+  "titulo": "El motor se vuelve loco y no tiene tope de fuerza",
+  "resultado": "vuelve a la silla",
+  "impacto_m_s": 1.48,
+  "t_impacto": 3.85,
+  "fotos": [
+   0.0,
+   1.3,
+   1.9,
+   2.9,
+   3.9
+  ]
+ },
+ "B3": {
+  "titulo": "La asistencia llega tarde",
+  "resultado": "vuelve a la silla",
+  "impacto_m_s": 1.38,
+  "t_impacto": 2.31,
+  "fotos": [
+   0.0,
+   0.7,
+   1.3,
+   1.8,
+   2.36
+  ]
+ }
+}
